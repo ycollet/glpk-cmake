@@ -9,6 +9,8 @@ option(GLPK_WITH_GMP      "use GNU MP bignum library"     OFF)
 option(GLPK_WITH_OLDAPI   "build the Glpk old API"        OFF)
 option(GLPK_WITH_CPLEXAPI "build the Glpk CPLEX API"      OFF)
 
+option(COIN_ENABLE_DOWNLOAD_DATA_TEST "Enable the download / run of Data tests from Coin website" OFF)
+
 # Compilation options
 option(ENABLE_SHARED_LIBRARIES       "Build libraries as shared libraries" OFF)
 option(GLPK_COMPILE_STATIC           "Activate the static linking" OFF)
@@ -965,3 +967,32 @@ if (GLPK_WITH_MYSQL)
     set_tests_properties(mysql_transp_mod_glpsol PROPERTIES ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}/lib\\;${CMAKE_BINARY_DIR}/bin")
   endif ()
 endif ()
+
+# #################################################
+# ===> Tests
+# #################################################
+
+if (COIN_ENABLE_DOWNLOAD_DATA_TEST)
+  include(ExternalProject)
+
+  if (NOT EXISTS ${CMAKE_BINARY_DIR}/DATA_TEST)
+    make_directory(${CMAKE_BINARY_DIR}/DATA_TEST)
+  endif ()
+  
+  set(DATA_TEST_VERSION "1.0.7")
+  
+  ExternalProject_Add(EP_DATA_TEST
+                      PREFIX ${CMAKE_BINARY_DIR}/DATA_TEST
+                      URL http://www.coin-or.org/download/source/Data/Data-${DATA_TEST_VERSION}.tgz
+                      PATCH_COMMAND     ""
+                      CONFIGURE_COMMAND ""
+                      BUILD_COMMAND     ""
+                      INSTALL_COMMAND   ""
+                      )
+
+  include(GlpkTests.cmake)
+endif()
+
+# #################################################
+# <=== Tests
+# #################################################
