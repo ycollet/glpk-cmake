@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.0.2)
 
 project(Glpk)
 
-option(GLPK_WITH_DL    "enable shared library support" OFF)
-option(GLPK_WITH_OBDC  "enable MathProg ODBC support"  OFF)
-option(GLPK_WITH_MYSQL "enable MathProg MySQL support" OFF)
-option(GLPK_WITH_GMP   "use GNU MP bignum library"     OFF)
+option(GLPK_WITH_DL       "enable shared library support" OFF)
+option(GLPK_WITH_OBDC     "enable MathProg ODBC support"  OFF)
+option(GLPK_WITH_MYSQL    "enable MathProg MySQL support" OFF)
+option(GLPK_WITH_GMP      "use GNU MP bignum library"     OFF)
+option(GLPK_WITH_OLDAPI   "build the Glpk old API"        OFF)
+option(GLPK_WITH_CPLEXAPI "build the Glpk CPLEX API"      OFF)
 
 # Compilation options
 option(ENABLE_SHARED_LIBRARIES       "Build libraries as shared libraries" OFF)
@@ -396,11 +398,19 @@ if (NOT WIN32)
   target_link_libraries(spxsamp2 m)
 endif ()
 
-add_executable(lpxsamp examples/oldapi/lpx.c examples/oldapi/lpxsamp.c)
-target_link_libraries(lpxsamp glpk)
-target_include_directories(lpxsamp BEFORE PUBLIC examples/oldapi)
-if (NOT WIN32)
-  target_link_libraries(lpxsamp m)
+if (GLPK_WITH_OLDAPI)
+  add_library(glpk-oldapi examples/oldapi/lpx.c)
+  add_executable(lpxsamp examples/oldapi/lpxsamp.c)
+  target_link_libraries(lpxsamp glpk-oldapi glpk)
+  target_include_directories(lpxsamp BEFORE PUBLIC examples/oldapi)
+  if (NOT WIN32)
+    target_link_libraries(lpxsamp m)
+  endif ()
+endif ()
+
+if (GLPK_WITH_CPLEXAPI)
+  add_library(glpk-cplexapi examples/cplex/cplex.c)
+  target_include_directories(glpk-cplexapi BEFORE PUBLIC examples/cplex)
 endif ()
 
 # Perform some tests
