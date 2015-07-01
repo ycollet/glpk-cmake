@@ -415,6 +415,14 @@ if (GLPK_WITH_CPLEXAPI)
   target_include_directories(glpk-cplexapi BEFORE PUBLIC examples/cplex)
 endif ()
 
+# Installation rules
+
+install(TARGETS glpk
+        DESTINATION lib)
+
+install(TARGETS glpsol
+        DESTINATION bin)
+
 # Perform some tests
 
 # Create a directory to store results from tests
