@@ -39,7 +39,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       ${CMAKE_SOURCE_DIR}/cmake)
 
-Enable_Testing()
+Enable_Testing ()
 
 #------------------------------------------------------------
 # Detect 64 bits
@@ -586,7 +586,7 @@ endif()
 # Create a directory to store results from tests
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/tests)
   make_directory(${CMAKE_BINARY_DIR}/tests)
-endif()
+endif ()
 
 #
 # Mps
@@ -1081,7 +1081,6 @@ if (GLPK_BUILD_EXAMPLES)
   if (WIN32)
     set_tests_properties(csv_mod_glpsol PROPERTIES ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}/lib\\;${CMAKE_BINARY_DIR}/bin")
   endif ()
-
   add_test(NAME dbf_mod_glpsol
     COMMAND $<TARGET_FILE:glpsol> --math ${CMAKE_SOURCE_DIR}/examples/dbf/ForestMgt_Model_I_GIS_dbf.mod
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/examples/dbf)
@@ -1098,7 +1097,6 @@ if (GLPK_BUILD_EXAMPLES)
   if (WIN32)
     set_tests_properties(pbn_mod_glpsol PROPERTIES ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}/lib\\;${CMAKE_BINARY_DIR}/bin")
   endif ()
-
   if (GLPK_WITH_ODBC)
     add_test(NAME odbc_sudoku_mod_glpsol
       COMMAND $<TARGET_FILE:glpsol> --math ${CMAKE_SOURCE_DIR}/examples/sql/sudoku_odbc.mod)
