@@ -698,15 +698,15 @@ endif ()
 ######################
 
 install(TARGETS glpk
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR})
+        DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if (GLPK_BUILD_EXAMPLES)
   install(TARGETS glpsol
-          DESTINATION ${CMAKE_INSTALL_PREFIX}/${BINDIR})
+          DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
 
 install(FILES src/glpk.h
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/${INCLUDEDIR})
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 ##########################################
 #                                        #
