@@ -10,7 +10,7 @@ option(GLPK_WITH_GMP       "use GNU MP bignum library"     OFF)
 option(GLPK_WITH_OLDAPI    "build the Glpk old API"        OFF)
 option(GLPK_WITH_CPLEXAPI  "build the Glpk CPLEX API"      OFF)
 
-option(COIN_ENABLE_DOWNLOAD_DATA_TEST "Enable the download / run of Data tests from Coin website" OFF)
+option(GLPK_ENABLE_DOWNLOAD_DATA_TEST "Enable the download / run of Data tests from Coin website" OFF)
 
 # Compilation options
 option(ENABLE_SHARED_LIBRARIES       "Build libraries as shared libraries" OFF)
@@ -766,7 +766,7 @@ endif ()
 # ===> Tests
 # #################################################
 
-if (COIN_ENABLE_DOWNLOAD_DATA_TEST)
+if (GLPK_ENABLE_DOWNLOAD_DATA_TEST)
   include(ExternalProject)
 
   if (NOT EXISTS ${CMAKE_BINARY_DIR}/DATA_TEST)
@@ -1341,3 +1341,24 @@ if (GLPK_BUILD_EXAMPLES)
     endif ()
   endif ()
 endif ()
+
+#
+# CPack
+#
+
+if (WIN32)
+  set(CPACK_GENERATOR "NSIS")
+else ()
+  set(CPACK_GENERATOR "ZIP")
+endif ()
+set(CPACK_PACKAGE_VENDOR    "${PACKAGE_NAME}")
+set(CPACK_PACKAGE_NAME      "${PACKAGE_NAME}")
+set(CPACK_PACKAGE_FILE_NAME "glpk-${GLPK_VERSION_STRING}") 
+set(CPACK_PACKAGE_VERSION   "${GLPK_VERSION_STRING}")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README")
+set(CPACK_RESOURCE_FILE_LICENSE    "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README     "${CMAKE_SOURCE_DIR}/README")
+
+# We must leave include(CPack) at the end of the CMakeLists.txt
+
+include(CPack)
