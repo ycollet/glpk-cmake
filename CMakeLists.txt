@@ -451,7 +451,7 @@ if (GLPK_ENABLE_DOWNLOAD_ZLIB)
   include_directories(${CMAKE_BINARY_DIR}/_dep/install/include)
   link_directories(${CMAKE_BINARY_DIR}/_dep/install/lib)
   if (WIN32)
-    set(ZLIB_LIBRARIES zlib-static)
+    set(ZLIB_LIBRARIES zlibstatic)
   else ()
     set(ZLIB_LIBRARIES libz.a)
   endif ()
@@ -460,20 +460,20 @@ else ()
   if (NOT ZLIB_FOUND)
     set(LIST_SRCS ${LIST_SRCS}
                   src/zlib/gzread.c
-		  src/zlib/gzwrite.c
-		  src/zlib/crc32.c
-		  src/zlib/uncompr.c
-		  src/zlib/compress.c
-		  src/zlib/zutil.c
-		  src/zlib/gzlib.c
-		  src/zlib/deflate.c
-		  src/zlib/gzclose.c
-		  src/zlib/adler32.c
-		  src/zlib/inffast.c
-		  src/zlib/zio.c
-		  src/zlib/inftrees.c
-		  src/zlib/trees.c
-		  src/zlib/inflate.c)
+                  src/zlib/gzwrite.c
+                  src/zlib/crc32.c
+                  src/zlib/uncompr.c
+                  src/zlib/compress.c
+                  src/zlib/zutil.c
+                  src/zlib/gzlib.c
+                  src/zlib/deflate.c
+                  src/zlib/gzclose.c
+                  src/zlib/adler32.c
+                  src/zlib/inffast.c
+                  src/zlib/zio.c
+                  src/zlib/inftrees.c
+                  src/zlib/trees.c
+                  src/zlib/inflate.c)
     
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/zlib)
   else ()
