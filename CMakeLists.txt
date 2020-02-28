@@ -11,10 +11,11 @@ option(GLPK_WITH_OLDAPI    "build the Glpk old API"        OFF) # Old API is cur
 option(GLPK_WITH_CPLEXAPI  "build the Glpk CPLEX API"      OFF)
 
 option(GLPK_ENABLE_DOWNLOAD_DATA_TEST "Enable the download / run of Data tests from Coin website" OFF)
+option(GLPK_ENABLE_DOWNLOAD_ZLIB      "Enable the download / install of ZLib library" OFF)
 
 # Compilation options
-option(ENABLE_SHARED_LIBRARIES       "Build libraries as shared libraries" OFF)
-option(GLPK_COMPILE_STATIC           "Activate the static linking" OFF)
+option(ENABLE_SHARED_LIBRARIES "Build libraries as shared libraries" OFF)
+option(GLPK_COMPILE_STATIC     "Activate the static linking" OFF)
 # Using lcov for code coverage (Linux only) - gcov and lcov must be installed on the system.
 # The following steps are performed:
 # - first, activate GLPK_COMPILE_COVERAGE
@@ -189,13 +190,11 @@ if (GLPK_WITH_GMP)
   check_include_file("gmp.h" HAVE_GMP)
 endif ()
 check_include_file("sys/time.h" HAVE_SYS_TIME_H)
-check_include_file("dlfcn.h"    HAVE_DLFCN)
 
 include(CheckSymbolExists)
 
 check_symbol_exists(gettimeofday sys/time.h HAVE_GETTIMEOFDAY)
 
-set(HAVE_LTDL OFF)
 if (GLPK_WITH_DL)
   find_package(LTDL)
   if (LTDL_FOUND)
@@ -203,6 +202,8 @@ if (GLPK_WITH_DL)
     include_directories(${LTDL_INCLUDE_DIR})
     link_directories(${LTDL_LIBRARY_DIR})
   endif ()
+  
+  check_include_file("dlfcn.h" HAVE_DLFCN)
 endif ()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
@@ -429,28 +430,55 @@ set(LIST_SRCS src/lux.c
               src/glpnpp03.c
               src/glpapi06.c)
 
-find_package(ZLIB)
-if (NOT ZLIB_FOUND)
-  set(LIST_SRCS ${LIST_SRCS}
-              src/zlib/gzread.c
-              src/zlib/gzwrite.c
-              src/zlib/crc32.c
-              src/zlib/uncompr.c
-              src/zlib/compress.c
-              src/zlib/zutil.c
-              src/zlib/gzlib.c
-              src/zlib/deflate.c
-              src/zlib/gzclose.c
-              src/zlib/adler32.c
-              src/zlib/inffast.c
-              src/zlib/zio.c
-              src/zlib/inftrees.c
-              src/zlib/trees.c
-              src/zlib/inflate.c)
+if (GLPK_ENABLE_DOWNLOAD_ZLIB)
+  set(zlib_version "1.2.11")
+  set(ZLIB_URL "http://zlib.net/zlib-${zlib_version}.tar.gz")
   
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/zlib)
+  include(ExternalProject)
+  
+  set(EP_InstallDir ${CMAKE_BINARY_DIR}/_dep)
+  
+  ExternalProject_Add(EP_Zlib
+                      PREFIX            ${EP_InstallDir}/Zlib_${zlib_version}
+                      URL               ${ZLIB_URL}
+                      PATCH_COMMAND     ""
+                      CONFIGURE_COMMAND ${CMAKE_COMMAND} -E make_directory ${EP_InstallDir}/Zlib_${zlib_version}/src/EP_Zlib/build
+                                     && ${CMAKE_COMMAND} -E chdir ${EP_InstallDir}/Zlib_${zlib_version}/src/EP_Zlib/build ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${EP_InstallDir}/install -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS} ${EP_COMPILER} -G ${CMAKE_GENERATOR} ..
+                      BUILD_COMMAND     ${CMAKE_COMMAND} -E chdir ${EP_InstallDir}/Zlib_${zlib_version}/src/EP_Zlib/build ${CMAKE_MAKE_PROGRAM}
+                      INSTALL_COMMAND   ${CMAKE_COMMAND} -E chdir ${EP_InstallDir}/Zlib_${zlib_version}/src/EP_Zlib/build ${CMAKE_MAKE_PROGRAM} install
+                      )
+  
+  include_directories(${CMAKE_BINARY_DIR}/_dep/install/include)
+  link_directories(${CMAKE_BINARY_DIR}/_dep/install/lib)
+  if (WIN32)
+    set(ZLIB_LIBRARIES zlib)
+  else ()
+    set(ZLIB_LIBRARIES z)
+  endif ()
 else ()
-  include_directories(${ZLIB_INCLUDE_DIRS})
+  find_package(ZLIB)
+  if (NOT ZLIB_FOUND)
+    set(LIST_SRCS ${LIST_SRCS}
+                  src/zlib/gzread.c
+		  src/zlib/gzwrite.c
+		  src/zlib/crc32.c
+		  src/zlib/uncompr.c
+		  src/zlib/compress.c
+		  src/zlib/zutil.c
+		  src/zlib/gzlib.c
+		  src/zlib/deflate.c
+		  src/zlib/gzclose.c
+		  src/zlib/adler32.c
+		  src/zlib/inffast.c
+		  src/zlib/zio.c
+		  src/zlib/inftrees.c
+		  src/zlib/trees.c
+		  src/zlib/inflate.c)
+    
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/zlib)
+  else ()
+    include_directories(${ZLIB_INCLUDE_DIRS})
+  endif ()
 endif ()
 
 # Files for 4.62
@@ -587,6 +615,10 @@ else ()
   add_library(glpk STATIC ${LIST_SRCS})
 endif ()
 
+if (GLPK_ENABLE_DOWNLOAD_ZLIB)
+  add_dependencies(glpk EP_Zlib)
+endif ()
+
 if (GLPK_WITH_OLDAPI)
   add_library(glpk-oldapi examples/oldapi/lpx.c)
 endif ()
@@ -611,7 +643,7 @@ if (GLPK_BUILD_EXAMPLES)
   if (LTDL_FOUND)
     target_link_libraries(glpsol ${LTDL_LIBRARIES})
   endif ()
-  if (ZLIB_FOUND)
+  if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
     target_link_libraries(glpsol ${ZLIB_LIBRARIES})
   endif ()
   if (GLPK_WITH_GMP AND HAVE_GMP)
@@ -626,7 +658,7 @@ if (GLPK_BUILD_EXAMPLES)
   if (LTDL_FOUND)
     target_link_libraries(iptsamp ${LTDL_LIBRARIES})
   endif ()
-  if (ZLIB_FOUND)
+  if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
     target_link_libraries(iptsamp ${ZLIB_LIBRARIES})
   endif ()
   if (GLPK_WITH_GMP AND HAVE_GMP)
@@ -642,7 +674,7 @@ if (GLPK_BUILD_EXAMPLES)
     if (LTDL_FOUND)
       target_link_libraries(nppsamp ${LTDL_LIBRARIES})
     endif ()
-    if (ZLIB_FOUND)
+    if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
       target_link_libraries(nppsamp ${ZLIB_LIBRARIES})
     endif ()
     if (GLPK_WITH_GMP AND HAVE_GMP)
@@ -658,7 +690,7 @@ if (GLPK_BUILD_EXAMPLES)
   if (LTDL_FOUND)
     target_link_libraries(mplsamp1 ${LTDL_LIBRARIES})
   endif ()
-  if (ZLIB_FOUND)
+  if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
     target_link_libraries(mplsamp1 ${ZLIB_LIBRARIES})
   endif ()
   if (GLPK_WITH_GMP AND HAVE_GMP)
@@ -673,7 +705,7 @@ if (GLPK_BUILD_EXAMPLES)
   if (LTDL_FOUND)
     target_link_libraries(mplsamp2 ${LTDL_LIBRARIES})
   endif ()
-  if (ZLIB_FOUND)
+  if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
     target_link_libraries(mplsamp2 ${ZLIB_LIBRARIES})
   endif ()
   if (GLPK_WITH_GMP AND HAVE_GMP)
@@ -688,7 +720,7 @@ if (GLPK_BUILD_EXAMPLES)
   if (LTDL_FOUND)
     target_link_libraries(netgen ${LTDL_LIBRARIES})
   endif ()
-  if (ZLIB_FOUND)
+  if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
     target_link_libraries(netgen ${ZLIB_LIBRARIES})
   endif ()
   if (GLPK_WITH_GMP AND HAVE_GMP)
@@ -703,7 +735,7 @@ if (GLPK_BUILD_EXAMPLES)
   if (LTDL_FOUND)
     target_link_libraries(sample ${LTDL_LIBRARIES})
   endif ()
-  if (ZLIB_FOUND)
+  if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
     target_link_libraries(sample ${ZLIB_LIBRARIES})
   endif ()
   if (GLPK_WITH_GMP AND HAVE_GMP)
@@ -718,7 +750,7 @@ if (GLPK_BUILD_EXAMPLES)
   if (LTDL_FOUND)
     target_link_libraries(spxsamp1 ${LTDL_LIBRARIES})
   endif ()
-  if (ZLIB_FOUND)
+  if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
     target_link_libraries(spxsamp1 ${ZLIB_LIBRARIES})
   endif ()
   if (GLPK_WITH_GMP AND HAVE_GMP)
@@ -733,7 +765,7 @@ if (GLPK_BUILD_EXAMPLES)
   if (LTDL_FOUND)
     target_link_libraries(spxsamp2 ${LTDL_LIBRARIES})
   endif ()
-  if (ZLIB_FOUND)
+  if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
     target_link_libraries(spxsamp2 ${ZLIB_LIBRARIES})
   endif ()
   if (GLPK_WITH_GMP AND HAVE_GMP)
@@ -750,7 +782,7 @@ if (GLPK_BUILD_EXAMPLES)
     if (LTDL_FOUND)
       target_link_libraries(lpxsamp ${LTDL_LIBRARIES})
     endif ()
-    if (ZLIB_FOUND)
+    if (GLPK_ENABLE_DOWNLOAD_ZLIB OR ZLIB_FOUND)
       target_link_libraries(lpxsamp ${ZLIB_LIBRARIES})
     endif ()
     if (GLPK_WITH_GMP AND HAVE_GMP)
