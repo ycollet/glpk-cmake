@@ -21,10 +21,10 @@
 /* defined if the POSIX shared library support is enabled */
 /* requires <dlfcn.h> */
 
-#cmakedefine ODBC_DLNAME @ODBC_DLNAME@
+#cmakedefine ODBC_DLNAME "@ODBC_DLNAME@"
 /* ODBC shared library name if this feature is enabled */
 
-#cmakedefine MYSQL_DLNAME @MYSQL_DLNAME@
+#cmakedefine MYSQL_DLNAME "@MYSQL_DLNAME@"
 /* MySQL shared library name if this feature is enabled */
 
 #cmakedefine HAVE_MYSQL @HAVE_MYSQL@
