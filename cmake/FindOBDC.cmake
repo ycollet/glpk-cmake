@@ -29,7 +29,7 @@ else ()
             /usr/local/include/odbc
             /usr/local/odbc/include
             $ENV{ODBC_DIR}/include
-            DOC "Specify the directory containing sql.h.")
+            DOC "Specify the directory containing sqlext.h.")
 
   find_library(ODBC_LIBRARY NAMES iodbc odbc odbc32
                PATHS /usr/lib
@@ -38,7 +38,13 @@ else ()
                      /usr/local/lib/odbc
                      /usr/local/odbc/lib
                      $ENV{ODBC_DIR}/lib
-               DOC "Specify the ODBC driver manager library here.")
+                     /usr/lib64
+                     /usr/lib64/odbc
+                     /usr/local/lib64
+                     /usr/local/lib64/odbc
+                     /usr/local/odbc/lib64
+                     $ENV{ODBC_DIR}/lib64
+		     DOC "Specify the ODBC driver manager library here.")
   if (ODBC_LIBRARY AND ODBC_INCLUDE_DIR)
     set(ODBC_FOUND ON)
   endif ()
